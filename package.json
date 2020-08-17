@@ -1,0 +1,17 @@
+{
+  "name": "daily-thought",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lambda-serve": "netlify-lambda serve functions",
+    "lambda-build": "netlify-lambda build functions"
+  },
+  "keywords": [],
+  "author": "Tshiamo Bhuda",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "netlify-lambda": "^2.0.1"
+  }
+}
