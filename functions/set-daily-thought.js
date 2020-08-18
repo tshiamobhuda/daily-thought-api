@@ -8,6 +8,7 @@ exports.handler = function (event, context, callback) {
             const $ = cheerio.load(response.data);
             const $content = $('.daily-thought').find('.more-text').first();
 
+            const date = $('.daily-thought').find('.div-date').first().text().trim();
             const verse = $content.find('strong').first().text().match(/(?!.*verse|:)\b((?!‘|\.).)+/gi);
             const notes = $content.text().trim().match(/-\s\b((?!\.|(prayer)).)+/gi);
             const prayer = $content.text().trim().match(/(?!.*prayer|:)\b(.)+/gi)
@@ -18,7 +19,7 @@ exports.handler = function (event, context, callback) {
             })
         }
     }).catch(function (err) {
-        console.log('Axios | Error occurred', err)
+        console.log('Axios | Error occurred during: get', err)
         
         callback(err);
     });
