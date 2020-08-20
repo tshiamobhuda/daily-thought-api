@@ -1,8 +1,16 @@
-require('dotenv').config()
+/**
+ * Copyright (c) 2020 Tshiamo Bhuda
+ * 
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
+ */
+
+require('dotenv').config();
 
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { MongoClient } = require('mongodb');
+const process = require('process');
 
 const user = process.env.MDB_USER;
 const pass = process.env.MDB_PASS;
@@ -58,7 +66,6 @@ exports.handler = function (event, context, callback) {
 
                 callback(error);
             });
-
         }
     }).catch(function (err) {
         console.log('Axios | Error occurred during: get', err);
