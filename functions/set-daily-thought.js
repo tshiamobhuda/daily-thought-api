@@ -14,8 +14,6 @@ const options = {
 };
 
 exports.handler = function (event, context, callback) {
-
-console.log(user, pass, database);
     axios.get('https://alivetogod.com/daily-thoughts').then(function (response) {
         if (response.status === 200) {
             const $ = cheerio.load(response.data);
