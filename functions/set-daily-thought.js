@@ -5,6 +5,7 @@ const { MongoClient } = require('mongodb');
 const user = process.env.MDB_USER;
 const pass = process.env.MDB_PASS;
 const database = process.env.MDB_DB;
+const link = process.env.SITE_URL;
 
 const uri = `mongodb+srv://${user}:${pass}@cluster0.a3rzr.mongodb.net/${database}?retryWrites=true&w=majority`;
 
@@ -14,7 +15,7 @@ const options = {
 };
 
 exports.handler = function (event, context, callback) {
-    axios.get('https://alivetogod.com/daily-thoughts').then(function (response) {
+    axios.get(link).then(function (response) {
         if (response.status === 200) {
             const $ = cheerio.load(response.data);
             const $content = $('.daily-thought').find('.more-text').first();
