@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { MongoClient } = require('mongodb');
@@ -5,9 +7,10 @@ const { MongoClient } = require('mongodb');
 const user = process.env.MDB_USER;
 const pass = process.env.MDB_PASS;
 const database = process.env.MDB_DB;
+const cluster = process.env.MDB_CLUSTER;
 const link = process.env.SITE_URL;
 
-const uri = `mongodb+srv://${user}:${pass}@cluster0.a3rzr.mongodb.net/${database}?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${user}:${pass}@${cluster}/${database}?retryWrites=true&w=majority`;
 
 const options = {
     useNewUrlParser: true,
