@@ -28,10 +28,11 @@ exports.handler = function (event, context, callback) {
         const cursor = db.collection('thoughts').find().sort({_id: -1}).limit(1);
         
         cursor.next().then((doc) => {
-            console.log(client.isConnected(),doc);
-
             callback(null, {
                 statusCode: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(doc)
             });
         }).catch((error) => {
