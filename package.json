@@ -15,5 +15,8 @@
     "dotenv": "^8.2.0",
     "mongodb": "^3.6.0",
     "netlify-lambda": "^2.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.7.0"
   }
 }
