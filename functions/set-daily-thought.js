@@ -58,9 +58,10 @@ exports.handler = function (event, context, callback) {
                     console.log('MongoDB | Error occurred during: insertOne', error);
 
                     callback(error);
+                }).finally(() => {
+                    client.close();
                 });
 
-                client.close();
             }).catch((error) => {
                 console.log('MongoDB | Error occurred during: connect', error);
 
