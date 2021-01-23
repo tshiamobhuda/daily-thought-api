@@ -5,22 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
-require('dotenv').config();
-
-const { MongoClient } = require('mongodb');
-const process = require('process');
-
-const user = process.env.MDB_USER;
-const pass = process.env.MDB_PASS;
-const database = process.env.MDB_DB;
-const cluster = process.env.MDB_CLUSTER;
-
-const uri = `mongodb+srv://${user}:${pass}@${cluster}/${database}?retryWrites=true&w=majority`;
-
-const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
+const { getClient } = require('../helpers/dbHelper');
 
 const requestHeaders = {
     headers: {
@@ -30,18 +15,18 @@ const requestHeaders = {
 
 exports.handler = async function () {
     try {
-        const client = await MongoClient.connect(uri, options);
-        
+        const client = await getClient();
+
         const db = client.db();
         const cursor = db.collection('thoughts').find().sort({_id: -1}).limit(1);
 
         const doc = await cursor.next();
 
+        await client.close();
+
         if (!doc) {
             throw new Error('MongoDB | Cursor returned without any results');
         }
-
-        await client.close();
 
         return {
             statusCode: 200,
@@ -49,11 +34,7 @@ exports.handler = async function () {
             body: JSON.stringify(doc),
         };
     } catch (error) {
-        if (8000 === error.code) {
-            console.log(`MongoDB | Error occurred during: MongoClient.connect | ${error}`);
-        } else {
-            console.log(error);
-        }
+        console.log(error);
 
         return {
             statusCode: 404,
