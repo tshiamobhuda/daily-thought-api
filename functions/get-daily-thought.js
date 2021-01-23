@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Tshiamo Bhuda
+ * Copyright (c) Tshiamo Bhuda
  * 
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
@@ -22,29 +22,43 @@ const options = {
     useUnifiedTopology: true
 };
 
-exports.handler = function (event, context, callback) {
-    MongoClient.connect(uri, options).then((client) => {
+const requestHeaders = {
+    headers: {
+        'Content-Type': 'application/json'
+    }
+};
+
+exports.handler = async function () {
+    try {
+        const client = await MongoClient.connect(uri, options);
+        
         const db = client.db();
         const cursor = db.collection('thoughts').find().sort({_id: -1}).limit(1);
-        
-        cursor.next().then((doc) => {
-            callback(null, {
-                statusCode: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(doc)
-            });
-        }).catch((error) => {
-            console.error('MongoDB | Error occurred during: forEach', error);
 
-            callback(error);
-        }).finally(() => {
-            client.close();
-        });
-    }).catch((error) => {
-        console.log('MongoDB | Error occurred during: connect', error);
+        const doc = await cursor.next();
 
-        callback(error);
-    });
+        if (!doc) {
+            throw new Error('MongoDB | Cursor returned without any results');
+        }
+
+        await client.close();
+
+        return {
+            statusCode: 200,
+            ...requestHeaders,
+            body: JSON.stringify(doc),
+        };
+    } catch (error) {
+        if (8000 === error.code) {
+            console.log(`MongoDB | Error occurred during: MongoClient.connect | ${error}`);
+        } else {
+            console.log(error);
+        }
+
+        return {
+            statusCode: 404,
+            ...requestHeaders,
+            body: JSON.stringify('An Error occurred')
+        };
+    }
 };
