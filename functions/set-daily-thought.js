@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Tshiamo Bhuda
+ * Copyright (c) 2021 Tshiamo Bhuda
  * 
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
@@ -7,70 +7,54 @@
 
 require('dotenv').config();
 
+const { getClient } = require('../helpers/dbHelper');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { MongoClient } = require('mongodb');
 const process = require('process');
 
-const user = process.env.MDB_USER;
-const pass = process.env.MDB_PASS;
-const database = process.env.MDB_DB;
-const cluster = process.env.MDB_CLUSTER;
 const link = process.env.SITE_URL;
 
-const uri = `mongodb+srv://${user}:${pass}@${cluster}/${database}?retryWrites=true&w=majority`;
+exports.handler = async function () {
+    try {
+        const { data } = await axios.get(link);
 
-const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
+        const $ = cheerio.load(data);
+        const $content = $('.daily-thought').find('.more-text').first();
 
-exports.handler = function (event, context, callback) {
-    axios.get(link).then(function (response) {
-        if (response.status === 200) {
-            const $ = cheerio.load(response.data);
-            const $content = $('.daily-thought').find('.more-text').first();
+        const date = $('.daily-thought').find('.div-date').first().text().trim();
+        const verse = $content.find('strong').first().text().match(/(?!.*verse|:)\b((?!‘|\.).)+/gi);
+        const notes = $content.text().trim().match(/-\s\b((?!\.|(prayer)).)+/gi);
+        const prayer = $content.text().trim().match(/(?!.*prayer|:)\b(.)+/gi);
 
-            const date = $('.daily-thought').find('.div-date').first().text().trim();
-            const verse = $content.find('strong').first().text().match(/(?!.*verse|:)\b((?!‘|\.).)+/gi);
-            const notes = $content.text().trim().match(/-\s\b((?!\.|(prayer)).)+/gi);
-            const prayer = $content.text().trim().match(/(?!.*prayer|:)\b(.)+/gi);
+        const record = {
+            date: date,
+            chapter: verse[0],
+            verse: verse[1],
+            notes: notes,
+            prayer: prayer.join()
+        };
 
-            const data = {
-                date: date,
-                chapter: verse[0],
-                verse: verse[1],
-                notes: notes,
-                prayer: prayer.join()
-            };
+        const client = await getClient();
+        const db = client.db();
 
-            MongoClient.connect(uri, options).then((client) => {
-                const db = client.db();
+        const result = await db.collection('thoughts').insertOne(record);
+        console.log(`${result.insertedCount} record inserted at id => ${result.insertedId}`);
 
-                db.collection('thoughts').insertOne(data).then((result) => {
-                    console.log(`${result.insertedCount} record inserted at id => ${result.insertedId}`);
+        client.close();
 
-                    callback(null, {
-                        statusCode: 200,
-                        body: JSON.stringify(result.insertedId)
-                    });
-                }).catch((error) => {
-                    console.log('MongoDB | Error occurred during: insertOne', error);
+        return {
+            statusCode: 200,
+            body: JSON.stringify(result.insertedId)
+        };
+    } catch (error) {
+        console.log(error);
 
-                    callback(error);
-                }).finally(() => {
-                    client.close();
-                });
-
-            }).catch((error) => {
-                console.log('MongoDB | Error occurred during: connect', error);
-
-                callback(error);
-            });
-        }
-    }).catch(function (err) {
-        console.log('Axios | Error occurred during: get', err);
-
-        callback(err);
-    });
+        return {
+            statusCode: 404,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify('An Error occurred'),
+        };
+    }
 };

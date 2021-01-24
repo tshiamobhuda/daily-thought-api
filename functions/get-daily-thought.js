@@ -1,50 +1,45 @@
 /**
- * Copyright (c) 2020 Tshiamo Bhuda
+ * Copyright (c) 2021 Tshiamo Bhuda
  * 
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
 
-require('dotenv').config();
+const { getClient } = require('../helpers/dbHelper');
 
-const { MongoClient } = require('mongodb');
-const process = require('process');
-
-const user = process.env.MDB_USER;
-const pass = process.env.MDB_PASS;
-const database = process.env.MDB_DB;
-const cluster = process.env.MDB_CLUSTER;
-
-const uri = `mongodb+srv://${user}:${pass}@${cluster}/${database}?retryWrites=true&w=majority`;
-
-const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+const requestHeaders = {
+    headers: {
+        'Content-Type': 'application/json'
+    }
 };
 
-exports.handler = function (event, context, callback) {
-    MongoClient.connect(uri, options).then((client) => {
+exports.handler = async function () {
+    try {
+        const client = await getClient();
+
         const db = client.db();
         const cursor = db.collection('thoughts').find().sort({_id: -1}).limit(1);
-        
-        cursor.next().then((doc) => {
-            callback(null, {
-                statusCode: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(doc)
-            });
-        }).catch((error) => {
-            console.error('MongoDB | Error occurred during: forEach', error);
 
-            callback(error);
-        }).finally(() => {
-            client.close();
-        });
-    }).catch((error) => {
-        console.log('MongoDB | Error occurred during: connect', error);
+        const doc = await cursor.next();
 
-        callback(error);
-    });
+        await client.close();
+
+        if (!doc) {
+            throw new Error('MongoDB | Cursor returned without any results');
+        }
+
+        return {
+            statusCode: 200,
+            ...requestHeaders,
+            body: JSON.stringify(doc),
+        };
+    } catch (error) {
+        console.log(error);
+
+        return {
+            statusCode: 404,
+            ...requestHeaders,
+            body: JSON.stringify('An Error occurred')
+        };
+    }
 };
