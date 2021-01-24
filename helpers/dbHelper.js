@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Tshiamo Bhuda
+ * Copyright (c) 2021 Tshiamo Bhuda
  * 
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT

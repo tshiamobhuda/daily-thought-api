@@ -1,7 +1,7 @@
 {
   "name": "daily-thought",
   "version": "1.0.0",
-  "description": "",
+  "description": "Little API built for pulling Daily-Thoughts (Verse of the day)",
   "scripts": {
     "lambda-serve": "netlify-lambda serve functions -p 3005",
     "lambda-build": "netlify-lambda build functions"
