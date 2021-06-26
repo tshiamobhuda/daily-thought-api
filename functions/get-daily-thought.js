@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2021 Tshiamo Bhuda
- * 
+ *
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
@@ -9,8 +9,14 @@ const { getClient } = require('../helpers/dbHelper');
 
 const requestHeaders = {
     headers: {
-        'Content-Type': 'application/json'
-    }
+        'Access-Control-Allow-Headers':
+            'Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Methods': 'OPTIONS',
+        'Access-Control-Max-Age': '-1',
+        'Access-Control-Allow-Origin': '*',
+        Vary: 'Origin',
+    },
 };
 
 exports.handler = async function () {
@@ -18,7 +24,11 @@ exports.handler = async function () {
         const client = await getClient();
 
         const db = client.db();
-        const cursor = db.collection('thoughts').find().sort({_id: -1}).limit(1);
+        const cursor = db
+            .collection('thoughts')
+            .find()
+            .sort({ _id: -1 })
+            .limit(1);
 
         const doc = await cursor.next();
 
@@ -39,7 +49,7 @@ exports.handler = async function () {
         return {
             statusCode: 404,
             ...requestHeaders,
-            body: JSON.stringify('An Error occurred')
+            body: JSON.stringify('An Error occurred'),
         };
     }
 };

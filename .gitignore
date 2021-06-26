@@ -1,3 +1,4 @@
+# Node modules
 node_modules
 
 # Local Netlify folder
@@ -8,3 +9,6 @@ lambda
 
 # local env variables
 .env
+
+# IDE
+.idea
